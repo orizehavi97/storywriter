@@ -43,6 +43,7 @@ class StateUpdater:
         changes = self._extract_state_changes(chapter)
 
         # Apply changes to memory
+        self._apply_new_characters(changes.get("new_characters", []), memory, chapter)
         self._apply_character_updates(changes.get("character_updates", []), memory)
         self._apply_location_updates(changes.get("location_updates", []), memory)
         self._apply_thread_updates(changes.get("thread_updates", []), memory, chapter)
@@ -90,17 +91,21 @@ CONTENT:
 
 Extract the following information in JSON format:
 
-1. CHARACTER UPDATES: Changes to character states, locations, or possessions
+1. NEW CHARACTERS: Characters introduced or mentioned for the first time
+   Format: [{{"name": "Name", "role": "protagonist/antagonist/ally/mentor/neutral", "personality": "brief description", "first_description": "how they were introduced"}}]
+
+2. CHARACTER UPDATES: Changes to existing character states, locations, or possessions
    Format: [{{"character_name": "Name", "updates": {{"status": "injured/captured/etc", "location": "new location", "items_gained": ["item"], "items_lost": ["item"]}}}}]
 
-2. LOCATION UPDATES: Changes to locations (destroyed, modified, discovered)
+3. LOCATION UPDATES: Changes to locations (destroyed, modified, discovered)
    Format: [{{"location_name": "Name", "change": "description of change", "status": "active/destroyed"}}]
 
-3. THREAD UPDATES: Progress on existing plot threads or new threads introduced
+4. THREAD UPDATES: Progress on existing plot threads or new threads introduced
    Format: [{{"action": "progress/resolve/introduce", "thread_name": "Name", "description": "what happened"}}]
 
 Return ONLY valid JSON in this format:
 {{
+  "new_characters": [...],
   "character_updates": [...],
   "location_updates": [...],
   "thread_updates": [...]
@@ -110,10 +115,12 @@ If no changes in a category, use empty array []."""
 
         system_prompt = """You are a story analysis expert. Extract factual state changes from narrative text.
 Focus on concrete, verifiable changes like:
+- New characters introduced (named characters who appear or speak)
 - Character injuries, captures, or status changes
 - Locations discovered, destroyed, or modified
 - Plot threads introduced, advanced, or resolved
 
+For new characters, only include those with names or significant roles (not unnamed "townspeople" or "guards").
 Be conservative - only report changes explicitly stated or strongly implied in the text."""
 
         response = self.client.generate(
@@ -144,12 +151,53 @@ Be conservative - only report changes explicitly stated or strongly implied in t
             print(f"[WARN] Failed to parse state changes: {e}")
             print(f"         Using empty changes")
             changes = {
+                "new_characters": [],
                 "character_updates": [],
                 "location_updates": [],
                 "thread_updates": []
             }
 
         return changes
+
+    def _apply_new_characters(
+        self,
+        new_chars: list[dict],
+        memory: StoryMemory,
+        chapter: Chapter
+    ) -> None:
+        """Add newly introduced characters to memory."""
+        if not new_chars:
+            return
+
+        print(f"[UPDATER] Adding {len(new_chars)} new character(s)...")
+
+        from ..models import Character
+
+        for char_data in new_chars:
+            char_name = char_data.get("name")
+
+            # Check if character already exists
+            exists = any(c.name == char_name for c in memory.characters.values())
+            if exists:
+                print(f"         - '{char_name}' already exists, skipping")
+                continue
+
+            # Generate character ID
+            char_id = f"char_{len(memory.characters) + 1:03d}"
+
+            # Create new character
+            new_char = Character(
+                character_id=char_id,
+                name=char_name,
+                personality=char_data.get("personality", ""),
+                role=char_data.get("role", "neutral"),
+                background=char_data.get("first_description", ""),
+                status="active",
+                current_location=""  # Will be updated as they appear
+            )
+
+            memory.characters[char_id] = new_char
+            print(f"         - Added '{char_name}' ({new_char.role})")
 
     def _apply_character_updates(
         self,
