@@ -167,7 +167,8 @@ Saga Goal: {context.get('saga_goal', 'Ongoing adventure')}
         if "recent_chapters" in context:
             prompt += "RECENT CHAPTERS:\n"
             for ch in context["recent_chapters"]:
-                prompt += f"- Ch {ch['num']}: {ch['title']}\n  {ch['summary']}\n  Ended with: {ch['cliffhanger']}\n"
+                ch_num = ch.get('chapter_number', ch.get('num', '?'))
+                prompt += f"- Ch {ch_num}: {ch['title']}\n  {ch['summary']}\n  Ended with: {ch['cliffhanger']}\n"
             prompt += "\n"
 
         # Add arc info
