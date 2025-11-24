@@ -165,7 +165,7 @@ Be conservative - only report changes explicitly stated or strongly implied in t
         memory: StoryMemory,
         chapter: Chapter
     ) -> None:
-        """Add newly introduced characters to memory."""
+        """Add newly introduced characters to memory with smart deduplication."""
         if not new_chars:
             return
 
@@ -176,10 +176,29 @@ Be conservative - only report changes explicitly stated or strongly implied in t
         for char_data in new_chars:
             char_name = char_data.get("name")
 
-            # Check if character already exists
-            exists = any(c.name == char_name for c in memory.characters.values())
-            if exists:
-                print(f"         - '{char_name}' already exists, skipping")
+            # Smart deduplication: normalize name and check for similar matches
+            normalized_new_name = self._normalize_character_name(char_name)
+
+            # Check for existing character with similar name
+            existing_char = None
+            for char in memory.characters.values():
+                normalized_existing = self._normalize_character_name(char.name)
+                if normalized_existing == normalized_new_name:
+                    existing_char = char
+                    break
+
+            if existing_char:
+                print(f"         - '{char_name}' matches existing '{existing_char.name}', skipping")
+
+                # Update existing character if new info is more detailed
+                if char_data.get("personality") and not existing_char.personality:
+                    existing_char.personality = char_data.get("personality")
+                    print(f"           Updated personality for '{existing_char.name}'")
+
+                if char_data.get("role") and existing_char.role == "neutral":
+                    existing_char.role = char_data.get("role")
+                    print(f"           Updated role to '{existing_char.role}'")
+
                 continue
 
             # Generate character ID
@@ -198,6 +217,31 @@ Be conservative - only report changes explicitly stated or strongly implied in t
 
             memory.characters[char_id] = new_char
             print(f"         - Added '{char_name}' ({new_char.role})")
+
+    def _normalize_character_name(self, name: str) -> str:
+        """
+        Normalize character name for deduplication.
+
+        Examples:
+        - "The Mysterious Informant" -> "mysterious informant"
+        - "Zephyr" -> "zephyr"
+        - "Sky Captain" -> "sky captain"
+        """
+        if not name:
+            return ""
+
+        # Remove common articles and convert to lowercase
+        normalized = name.lower().strip()
+
+        # Remove leading articles
+        for article in ["the ", "a ", "an "]:
+            if normalized.startswith(article):
+                normalized = normalized[len(article):]
+
+        # Remove extra whitespace
+        normalized = " ".join(normalized.split())
+
+        return normalized
 
     def _apply_character_updates(
         self,
