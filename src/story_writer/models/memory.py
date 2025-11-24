@@ -9,6 +9,7 @@ from .arc import Arc
 from .character import Character
 from .world import WorldLocation, Faction, Artifact
 from .thread import PlotThread
+from .tracker import CharacterAlias, Relationship, WorldEvent
 
 
 class StoryMemory(BaseModel):
@@ -102,6 +103,22 @@ class StoryMemory(BaseModel):
     world_history_log: list[dict] = Field(
         default_factory=list,
         description="Major world events: {chapter_id, event}"
+    )
+
+    # Phase 4: Enhanced tracking
+    character_aliases: dict[str, CharacterAlias] = Field(
+        default_factory=dict,
+        description="Character ID -> CharacterAlias for deduplication"
+    )
+
+    relationships: dict[str, Relationship] = Field(
+        default_factory=dict,
+        description="Relationship ID -> Relationship between characters"
+    )
+
+    world_timeline: list[WorldEvent] = Field(
+        default_factory=list,
+        description="Chronological list of major world events"
     )
 
     class Config:

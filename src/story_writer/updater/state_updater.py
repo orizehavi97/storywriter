@@ -48,6 +48,10 @@ class StateUpdater:
         self._apply_location_updates(changes.get("location_updates", []), memory)
         self._apply_thread_updates(changes.get("thread_updates", []), memory, chapter)
 
+        # Phase 4: Apply enhanced tracking
+        self._apply_relationships(changes.get("relationships", []), memory, chapter)
+        self._apply_timeline_events(changes.get("major_events", []), memory, chapter)
+
         # Update arc progress
         if memory.current_arc_id:
             arc = memory.arcs.get(memory.current_arc_id)
@@ -103,12 +107,20 @@ Extract the following information in JSON format:
 4. THREAD UPDATES: Progress on existing plot threads or new threads introduced
    Format: [{{"action": "progress/resolve/introduce", "thread_name": "Name", "description": "what happened"}}]
 
+5. RELATIONSHIPS: Character relationships mentioned or established
+   Format: [{{"character_a": "Name", "character_b": "Name", "type": "ally/friend/rival/enemy/mentor/family", "description": "context"}}]
+
+6. MAJOR EVENTS: Significant events worth tracking in timeline
+   Format: [{{"description": "what happened", "type": "battle/discovery/death/alliance/betrayal/revelation", "impact": "minor/moderate/major/critical"}}]
+
 Return ONLY valid JSON in this format:
 {{
   "new_characters": [...],
   "character_updates": [...],
   "location_updates": [...],
-  "thread_updates": [...]
+  "thread_updates": [...],
+  "relationships": [...],
+  "major_events": [...]
 }}
 
 If no changes in a category, use empty array []."""
@@ -154,7 +166,9 @@ Be conservative - only report changes explicitly stated or strongly implied in t
                 "new_characters": [],
                 "character_updates": [],
                 "location_updates": [],
-                "thread_updates": []
+                "thread_updates": [],
+                "relationships": [],
+                "major_events": []
             }
 
         return changes
@@ -224,6 +238,7 @@ Be conservative - only report changes explicitly stated or strongly implied in t
 
         Examples:
         - "The Mysterious Informant" -> "mysterious informant"
+        - "Unnamed Guard Leader" -> "guard leader"
         - "Zephyr" -> "zephyr"
         - "Sky Captain" -> "sky captain"
         """
@@ -237,6 +252,10 @@ Be conservative - only report changes explicitly stated or strongly implied in t
         for article in ["the ", "a ", "an "]:
             if normalized.startswith(article):
                 normalized = normalized[len(article):]
+
+        # Phase 4: Remove "unnamed" prefix
+        if normalized.startswith("unnamed "):
+            normalized = normalized[8:]  # Remove "unnamed "
 
         # Remove extra whitespace
         normalized = " ".join(normalized.split())
@@ -387,3 +406,85 @@ Be conservative - only report changes explicitly stated or strongly implied in t
                     print(f"         - Resolved thread: '{thread_name}'")
                 else:
                     print(f"         - Warning: Thread '{thread_name}' not found")
+
+    def _apply_relationships(
+        self,
+        relationships: list[dict],
+        memory: StoryMemory,
+        chapter: Chapter
+    ) -> None:
+        """Track character relationships (Phase 4)."""
+        if not relationships:
+            return
+
+        print(f"[UPDATER] Tracking {len(relationships)} relationship(s)...")
+
+        from ..models import Relationship
+
+        for rel_data in relationships:
+            char_a_name = rel_data.get("character_a")
+            char_b_name = rel_data.get("character_b")
+
+            # Find character IDs by name
+            char_a_id = None
+            char_b_id = None
+            for char in memory.characters.values():
+                if char.name == char_a_name:
+                    char_a_id = char.character_id
+                if char.name == char_b_name:
+                    char_b_id = char.character_id
+
+            if not char_a_id or not char_b_id:
+                print(f"         - Warning: Could not find characters for relationship")
+                continue
+
+            # Create relationship ID (sorted to avoid duplicates)
+            rel_key = tuple(sorted([char_a_id, char_b_id]))
+            rel_id = f"rel_{rel_key[0]}_{rel_key[1]}"
+
+            # Check if relationship exists
+            if rel_id in memory.relationships:
+                # Update existing
+                memory.relationships[rel_id].last_updated = chapter.chapter_id
+                print(f"         - Updated: {char_a_name} <-> {char_b_name}")
+            else:
+                # Create new
+                new_rel = Relationship(
+                    character_a=char_a_id,
+                    character_b=char_b_id,
+                    relationship_type=rel_data.get("type", "neutral"),
+                    established_chapter=chapter.chapter_id,
+                    last_updated=chapter.chapter_id,
+                    notes=rel_data.get("description", "")
+                )
+                memory.relationships[rel_id] = new_rel
+                print(f"         - New: {char_a_name} <-> {char_b_name} ({new_rel.relationship_type})")
+
+    def _apply_timeline_events(
+        self,
+        events: list[dict],
+        memory: StoryMemory,
+        chapter: Chapter
+    ) -> None:
+        """Add events to world timeline (Phase 4)."""
+        if not events:
+            return
+
+        print(f"[UPDATER] Adding {len(events)} event(s) to timeline...")
+
+        from ..models import WorldEvent
+
+        for event_data in events:
+            event_id = f"event_{chapter.chapter_id}_{len(memory.world_timeline) + 1}"
+
+            event = WorldEvent(
+                event_id=event_id,
+                chapter_id=chapter.chapter_id,
+                chapter_number=chapter.chapter_number,
+                description=event_data.get("description", ""),
+                event_type=event_data.get("type", "discovery"),
+                impact=event_data.get("impact", "minor")
+            )
+
+            memory.world_timeline.append(event)
+            print(f"         - {event.event_type}: {event.description[:50]}...")
