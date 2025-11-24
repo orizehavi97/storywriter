@@ -10,14 +10,16 @@ from ..utils import LLMClient
 class StateUpdater:
     """Extracts state changes from chapters and updates memory."""
 
-    def __init__(self, llm_client: LLMClient):
+    def __init__(self, llm_client: LLMClient, vector_store=None):
         """
         Initialize state updater.
 
         Args:
             llm_client: LLM client for extraction
+            vector_store: Optional VectorMemoryStore for Phase 2 indexing
         """
         self.client = llm_client
+        self.vector_store = vector_store  # Phase 2 enhancement
 
     def update_from_chapter(self, chapter: Chapter, memory: StoryMemory) -> StoryMemory:
         """
@@ -55,6 +57,16 @@ class StateUpdater:
         # Update theme counts
         for theme in chapter.themes:
             memory.theme_counts[theme] = memory.theme_counts.get(theme, 0) + 1
+
+        # Phase 2: Index in vector store
+        if self.vector_store:
+            print(f"[UPDATER] Indexing chapter in vector store...")
+            self.vector_store.add_chapter(chapter)
+
+            # Index any new threads
+            for thread_id, thread in memory.plot_threads.items():
+                if thread.setup_chapter == chapter.chapter_id:
+                    self.vector_store.add_thread(thread)
 
         print(f"[OK] Memory updated successfully")
 

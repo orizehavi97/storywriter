@@ -10,15 +10,17 @@ from ..utils import LLMClient, get_style_guide
 class ChapterPlanner:
     """Plans chapter outlines using LLM."""
 
-    def __init__(self, llm_client: LLMClient):
+    def __init__(self, llm_client: LLMClient, retriever=None):
         """
         Initialize chapter planner.
 
         Args:
             llm_client: LLM client for generation
+            retriever: Optional SmartRetriever for Phase 2 enhanced context
         """
         self.client = llm_client
         self.style_guide = get_style_guide()
+        self.retriever = retriever  # Phase 2 enhancement
 
     def plan_chapter(
         self,
@@ -76,18 +78,40 @@ class ChapterPlanner:
             "saga_goal": memory.saga_goal,
         }
 
-        # Recent chapters summary
-        recent_chapters = memory.get_recent_chapters(n=3)
-        if recent_chapters:
-            context["recent_chapters"] = [
-                {
-                    "num": ch.chapter_number,
-                    "title": ch.title,
-                    "summary": ch.summary,
-                    "cliffhanger": ch.cliffhanger
-                }
-                for ch in recent_chapters
-            ]
+        # Phase 2: Use smart retrieval if available
+        if self.retriever and len(memory.chapters) > 0:
+            retrieved = self.retriever.retrieve_for_planning(
+                memory=memory,
+                current_arc_id=arc.arc_id if arc else None
+            )
+
+            # Add retrieved context
+            context["recent_chapters"] = retrieved["recent_chapters"]
+            context["relevant_past_chapters"] = retrieved["relevant_chapters"][:3]
+            context["relevant_events"] = retrieved["relevant_events"][:5]
+            context["surprise_callbacks"] = retrieved["surprise_callbacks"]
+            context["open_threads"] = retrieved["active_threads"]
+        else:
+            # Phase 1 fallback: Basic context
+            recent_chapters = memory.get_recent_chapters(n=3)
+            if recent_chapters:
+                context["recent_chapters"] = [
+                    {
+                        "num": ch.chapter_number,
+                        "title": ch.title,
+                        "summary": ch.summary,
+                        "cliffhanger": ch.cliffhanger
+                    }
+                    for ch in recent_chapters
+                ]
+
+            # Open plot threads (major ones)
+            major_threads = memory.major_open_threads
+            if major_threads:
+                context["open_threads"] = [
+                    {"name": t.name, "type": t.thread_type}
+                    for t in major_threads[:5]
+                ]
 
         # Current arc info
         if arc:
@@ -106,14 +130,6 @@ class ChapterPlanner:
             if char.status == "active"
         ]
         context["active_characters"] = active_chars[:10]  # Limit context
-
-        # Open plot threads (major ones)
-        major_threads = memory.major_open_threads
-        if major_threads:
-            context["open_threads"] = [
-                {"name": t.name, "type": t.thread_type}
-                for t in major_threads[:5]
-            ]
 
         return context
 
@@ -175,7 +191,28 @@ Location: {arc['location']}
         if context.get("open_threads"):
             prompt += "OPEN PLOT THREADS:\n"
             for thread in context["open_threads"]:
-                prompt += f"- {thread['name']} ({thread['type']})\n"
+                thread_name = thread.get('name', 'Unknown')
+                thread_type = thread.get('type', thread.get('thread_type', 'mystery'))
+                prompt += f"- {thread_name} ({thread_type})\n"
+            prompt += "\n"
+
+        # Phase 2: Add relevant past context
+        if context.get("relevant_past_chapters"):
+            prompt += "RELEVANT PAST CHAPTERS (for potential callbacks):\n"
+            for ch in context["relevant_past_chapters"]:
+                prompt += f"- Ch {ch['chapter_number']}: {ch['title']}\n  {ch['summary'][:100]}...\n"
+            prompt += "\n"
+
+        if context.get("relevant_events"):
+            prompt += "RELEVANT PAST EVENTS (consider referencing):\n"
+            for event in context["relevant_events"]:
+                prompt += f"- Ch {event['chapter_number']}: {event['event']}\n"
+            prompt += "\n"
+
+        if context.get("surprise_callbacks"):
+            prompt += "OPTIONAL CALLBACK OPPORTUNITIES (subtle references):\n"
+            for callback in context["surprise_callbacks"]:
+                prompt += f"- Ch {callback['chapter_number']}: {callback['key_event']}\n"
             prompt += "\n"
 
         # Instructions
