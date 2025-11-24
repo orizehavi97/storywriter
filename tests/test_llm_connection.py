@@ -37,7 +37,7 @@ def test_llm_connection():
         print(response)
         print("-" * 60)
         print()
-        print("✓ LLM connection test PASSED")
+        print("[PASS] LLM connection test PASSED")
         return True
 
     except ValueError as e:

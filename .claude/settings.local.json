@@ -6,7 +6,11 @@
       "Bash(python main.py:*)",
       "Bash(python tests/test_setup.py:*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(test:*)",
+      "Bash(git remote add:*)",
+      "Bash(git push:*)",
+      "Bash(python tests/test_llm_connection.py:*)"
     ],
     "deny": [],
     "ask": []
