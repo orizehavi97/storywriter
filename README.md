@@ -1,50 +1,47 @@
-# Oda-Style Story Engine (OSSE)
+# Storywriter
 
 [![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
-> An intelligent, multi-phase story generation system inspired by Eiichiro Oda's narrative style, featuring advanced state management, quality control, and semantic memory retrieval.
+> An intelligent AI-powered story generation system for creating long-form, serialized narratives with consistent characters, evolving plot threads, and rich world-building inspired by Eiichiro Oda's narrative style.
 
 ## 🎯 Overview
 
-OSSE is a production-ready AI-powered story generation engine that creates long-form, serialized narratives with consistent characters, evolving plot threads, and rich world-building. The system employs a four-phase architecture to ensure narrative quality, continuity, and compelling storytelling.
+Storywriter is a production-ready story generation engine that creates compelling, serialized narratives with:
 
-### Key Features
+- **Intelligent State Management** - Automatic tracking of characters, relationships, locations, and plot threads
+- **Semantic Memory** - Vector-based retrieval for context-aware chapter planning
+- **Quality Control** - Automated continuity checking and style assessment
+- **Iterative Revision** - AI-driven refinement based on quality feedback
+- **World Timeline** - Chronological event tracking with impact analysis
+- **Relationship Dynamics** - Character relationship mapping with evolving types and strength
 
-- **🧠 Intelligent State Management** - Track characters, relationships, locations, and plot threads with automatic deduplication
-- **📚 Semantic Memory** - ChromaDB-powered vector store for context-aware chapter planning
-- **✅ Quality Control** - Automated continuity checking and Oda-style quality assessment
-- **🔄 Iterative Revision** - AI-driven chapter refinement based on quality feedback
-- **🌍 World Timeline** - Chronological event tracking with impact analysis
-- **🤝 Relationship Tracking** - Dynamic character relationship mapping with types and strength
-- **📊 Phase-based Architecture** - Modular design with clear separation of concerns
+## ✨ Key Features
 
-## 🏗️ System Architecture
+### 🧠 State Management
+- **Character Tracking** - Automatic character extraction and deduplication
+- **Relationship Evolution** - Dynamic mapping of character relationships (friend, rival, mentor, enemy, family)
+- **Plot Thread Management** - Automatic introduction, progression, and resolution of narrative threads
+- **World Timeline** - Chronological logging of major events (battles, discoveries, alliances, betrayals)
+- **Fuzzy Matching** - Intelligent deduplication prevents "The Guard Captain" vs "Guard Captain" duplicates
 
-### Phase 1: Foundation & Basic Generation
-- Core data models (Pydantic-based)
-- LLM integration (OpenAI GPT-4o)
-- Basic chapter planning and writing
-- JSON-based memory persistence
+### 📚 Semantic Memory
+- **Vector Storage** - ChromaDB-powered semantic search for chapters, events, and plot threads
+- **Smart Retrieval** - Context-aware selection of relevant past events for chapter planning
+- **Historical Context** - Access to full story history for maintaining consistency
 
-### Phase 2: Intelligent Memory System
-- Vector-based semantic search (ChromaDB)
-- Smart context retrieval for planning
-- Historical event indexing
-- Thread-aware chapter generation
+### ✅ Quality Assurance
+- **Continuity Checking** - Automatic detection of character, location, and plot inconsistencies
+- **Style Assessment** - Oda-style narrative quality evaluation (pacing, voice, structure)
+- **Automated Revision** - Up to 2 revision cycles with targeted feedback
+- **Multi-Criteria Scoring** - Overall quality, style adherence, voice consistency, pacing effectiveness
 
-### Phase 3: Quality Control System
-- Continuity violation detection
-- Oda-style quality assessment
-- Automated revision with feedback loops
-- Multi-criteria scoring (style, voice, pacing)
-
-### Phase 4: Enhanced State Management
-- Character alias tracking and deduplication
-- Relationship dynamics with strength metrics
-- World event timeline with impact levels
-- Fuzzy name matching for entity resolution
+### 📝 Generation Pipeline
+- **Chapter Planning** - LLM-powered outline generation with scene breakdown
+- **Narrative Writing** - GPT-4o-based chapter composition (target 1500 words)
+- **Quality Loop** - Iterative refinement until quality thresholds are met
+- **State Extraction** - Automatic memory updates from generated content
 
 ## 📦 Installation
 
@@ -85,12 +82,16 @@ OSSE is a production-ready AI-powered story generation engine that creates long-
 
    Edit `config/world_seed.yaml` to customize your story world:
    ```yaml
-   world_name: "Your World Name"
-   central_conflict: "Your main conflict"
+   world_name: "The Shattered Isles"
+   starting_location:
+     name: "Drift Port"
+     description: "A bustling harbor town"
+
    protagonist:
-     name: "Hero Name"
-     personality: "Brave, curious, loyal"
-     dream: "Their ultimate goal"
+     name: "Kael"
+     age: 17
+     personality: "Optimistic, reckless, loyal"
+     dream: "Find the lost homeland"
    ```
 
 ## 🚀 Quick Start
@@ -117,7 +118,7 @@ The interactive CLI will guide you through:
          │
          ▼
 ┌─────────────────┐
-│  Plan Chapter   │ ◄─── Phase 2: Smart Retrieval
+│  Plan Chapter   │ ◄─── Smart context retrieval
 └────────┬────────┘
          │
          ▼
@@ -127,7 +128,7 @@ The interactive CLI will guide you through:
          │
          ▼
 ┌─────────────────┐
-│  Quality Check  │ ◄─── Phase 3: Continuity & Quality
+│  Quality Check  │ ◄─── Continuity & style assessment
 └────────┬────────┘
          │
     ┌────┴────┐
@@ -141,7 +142,7 @@ The interactive CLI will guide you through:
          │ Yes
          ▼
 ┌─────────────────┐
-│  Update State   │ ◄─── Phase 4: Enhanced Tracking
+│  Update State   │ ◄─── Extract characters, threads, relationships
 └────────┬────────┘
          │
          ▼
@@ -230,33 +231,77 @@ story_writer/
 ├── data/
 │   ├── chapters/                # Generated chapter markdown files
 │   ├── memory/                  # JSON story state + backups
-│   └── models/                  # Cached embedding models
+│   │   ├── backups/            # Timestamped backups
+│   │   └── vectors/            # ChromaDB vector storage
+│   └── models/                  # Cached embedding models (auto-downloaded)
 ├── src/story_writer/
-│   ├── checker/                 # Phase 3: Quality control
-│   │   ├── continuity_checker.py
-│   │   └── quality_checker.py
-│   ├── memory/                  # Phase 2: Memory systems
-│   │   ├── json_store.py
-│   │   ├── vector_store.py
-│   │   └── smart_retriever.py
-│   ├── models/                  # Phase 1: Data models
-│   │   ├── memory.py            # StoryMemory, Arc, Chapter
-│   │   ├── character.py         # Character model
-│   │   ├── thread.py            # PlotThread model
-│   │   └── tracker.py           # Phase 4: Relationship, WorldEvent
-│   ├── planner/                 # Phase 1: Chapter planning
+│   ├── checker/                 # Quality control
+│   │   ├── continuity_checker.py  # Detect inconsistencies
+│   │   └── quality_checker.py     # Oda-style assessment
+│   ├── memory/                  # Memory systems
+│   │   ├── json_store.py         # JSON persistence
+│   │   ├── vector_store.py       # ChromaDB integration
+│   │   └── smart_retriever.py    # Context-aware retrieval
+│   ├── models/                  # Data models
+│   │   ├── memory.py             # StoryMemory, Arc, Chapter
+│   │   ├── character.py          # Character model
+│   │   ├── thread.py             # PlotThread model
+│   │   └── tracker.py            # Relationship, WorldEvent
+│   ├── planner/                 # Chapter planning
 │   │   └── chapter_planner.py
-│   ├── updater/                 # Phase 4: State extraction
-│   │   └── state_updater.py
-│   ├── writer/                  # Phase 1: Chapter writing
+│   ├── updater/                 # State extraction
+│   │   └── state_updater.py      # LLM-based state extraction
+│   ├── writer/                  # Chapter writing
 │   │   ├── chapter_writer.py
-│   │   └── chapter_reviser.py   # Phase 3: Revision
+│   │   └── chapter_reviser.py    # Revision with feedback
 │   └── utils/
-│       └── llm_client.py        # OpenAI integration
+│       └── llm_client.py         # OpenAI integration
 ├── tests/                       # Unit tests
 ├── main.py                      # CLI entry point
 ├── pyproject.toml               # Package configuration
 └── README.md                    # This file
+```
+
+## 🏗️ System Architecture
+
+### Core Components
+
+#### 1. Memory Layer
+- **JSON Store** - Primary persistence for story state
+- **Vector Store** - Semantic search with ChromaDB
+- **Smart Retriever** - Context-aware information retrieval
+
+#### 2. Generation Layer
+- **Chapter Planner** - Creates outlines with scene breakdowns
+- **Chapter Writer** - Generates narrative content
+- **State Updater** - Extracts entities from generated text
+
+#### 3. Quality Layer
+- **Continuity Checker** - Rule-based consistency validation
+- **Quality Checker** - LLM-based style assessment
+- **Chapter Reviser** - Iterative refinement with feedback
+
+#### 4. Data Models
+- **StoryMemory** - Central state container
+- **Character** - Entity tracking with relationships
+- **PlotThread** - Narrative arc management
+- **Chapter** - Generated content with metadata
+- **Arc** - Story structure organization
+- **Relationship** - Character dynamics
+- **WorldEvent** - Timeline tracking
+
+### Data Flow
+
+```
+User Input → Chapter Planning → Content Generation → Quality Check
+                 ↓                     ↓                    ↓
+         Context Retrieval      State Extraction    Pass/Revise
+                 ↓                     ↓                    ↓
+           Vector Search        Entity Detection     Feedback Loop
+                 ↓                     ↓                    ↓
+         Historical Data       Memory Updates      Final Chapter
+                                      ↓
+                              JSON + Vector Storage
 ```
 
 ## 🔧 Configuration
@@ -314,26 +359,9 @@ CHAPTER_TARGET_WORDS=1500         # Default: 1500
 MAX_REVISIONS=2                   # Default: 2
 ```
 
-## 🧪 Testing
-
-Run the test suite:
-
-```bash
-# Test LLM connection
-python tests/test_llm_connection.py
-
-# Test memory store
-python tests/test_memory_store.py
-
-# Run all tests
-pytest tests/
-```
-
 ## 📊 Data Models
 
-### Core Models
-
-**StoryMemory** - Central state container
+### StoryMemory
 ```python
 story_title: str
 world_name: str
@@ -341,11 +369,11 @@ characters: dict[str, Character]
 plot_threads: dict[str, PlotThread]
 chapters: dict[str, Chapter]
 arcs: dict[str, Arc]
-relationships: dict[str, Relationship]      # Phase 4
-world_timeline: list[WorldEvent]            # Phase 4
+relationships: dict[str, Relationship]
+world_timeline: list[WorldEvent]
 ```
 
-**Character** - Entity tracking
+### Character
 ```python
 character_id: str
 name: str
@@ -357,7 +385,7 @@ current_location: str
 items: list[str]
 ```
 
-**Relationship** - Character dynamics (Phase 4)
+### Relationship
 ```python
 character_a: str  # character_id
 character_b: str  # character_id
@@ -368,7 +396,7 @@ last_updated: str
 notes: str
 ```
 
-**WorldEvent** - Timeline tracking (Phase 4)
+### WorldEvent
 ```python
 event_id: str
 chapter_id: str
@@ -449,6 +477,17 @@ relationship.relationship_type = "enemy"
 relationship.strength = -80
 ```
 
+### Thread Deduplication
+
+Fuzzy matching prevents duplicate plot threads:
+
+```
+"Wind Walker Prophecy"     → normalized to "wind walker prophecy"
+"The Wind Walker prophecy" → normalized to "wind walker prophecy"
+"wind walker prophecy"     → normalized to "wind walker prophecy"
+→ Only one thread created
+```
+
 ## 📈 Performance & Scaling
 
 - **Memory Usage:** ~500MB-2GB (depends on embedding model)
@@ -469,6 +508,24 @@ relationship.strength = -80
    ```python
    quality_checker.min_score = 75  # Default: 80
    ```
+
+## 🧪 Testing
+
+Run the test suite:
+
+```bash
+# Test LLM connection
+python tests/test_llm_connection.py
+
+# Test memory store
+python tests/test_memory_store.py
+
+# Test thread deduplication
+python tests/test_thread_deduplication.py
+
+# Run all tests
+pytest tests/
+```
 
 ## 🤝 Contributing
 

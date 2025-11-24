@@ -16,11 +16,11 @@ class ChapterPlanner:
 
         Args:
             llm_client: LLM client for generation
-            retriever: Optional SmartRetriever for Phase 2 enhanced context
+            retriever: Optional SmartRetriever for enhanced context retrieval
         """
         self.client = llm_client
         self.style_guide = get_style_guide()
-        self.retriever = retriever  # Phase 2 enhancement
+        self.retriever = retriever
 
     def plan_chapter(
         self,
@@ -78,7 +78,7 @@ class ChapterPlanner:
             "saga_goal": memory.saga_goal,
         }
 
-        # Phase 2: Use smart retrieval if available
+        # Use smart retrieval if available
         if self.retriever and len(memory.chapters) > 0:
             retrieved = self.retriever.retrieve_for_planning(
                 memory=memory,
@@ -92,7 +92,7 @@ class ChapterPlanner:
             context["surprise_callbacks"] = retrieved["surprise_callbacks"]
             context["open_threads"] = retrieved["active_threads"]
         else:
-            # Phase 1 fallback: Basic context
+            # Fallback: Basic context
             recent_chapters = memory.get_recent_chapters(n=3)
             if recent_chapters:
                 context["recent_chapters"] = [
@@ -197,7 +197,7 @@ Location: {arc['location']}
                 prompt += f"- {thread_name} ({thread_type})\n"
             prompt += "\n"
 
-        # Phase 2: Add relevant past context
+        # Add relevant past context
         if context.get("relevant_past_chapters"):
             prompt += "RELEVANT PAST CHAPTERS (for potential callbacks):\n"
             for ch in context["relevant_past_chapters"]:

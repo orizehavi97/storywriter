@@ -1,4 +1,4 @@
-"""Data models for Phase 4 state tracking."""
+"""Data models for enhanced state tracking (relationships, timeline events)."""
 
 from typing import List, Optional
 from datetime import datetime

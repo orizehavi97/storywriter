@@ -125,7 +125,7 @@ def generate_chapter(
     # Write chapter
     chapter = writer.write_chapter(outline, memory)
 
-    # Phase 3: Quality Control Loop
+    # Quality Control Loop
     if continuity_checker and quality_checker and reviser:
         max_revisions = 2
         revision_count = 0
@@ -144,13 +144,13 @@ def generate_chapter(
 
             # Break if quality is acceptable
             if not has_critical_violations and not has_major_violations and not needs_quality_revision:
-                print(f"\n[PHASE 3] Quality control passed!")
+                print(f"\n[QUALITY] Quality control passed!")
                 break
 
             # Revise if needed
             revision_count += 1
             if revision_count < max_revisions:
-                print(f"\n[PHASE 3] Revision needed (attempt {revision_count}/{max_revisions})...")
+                print(f"\n[QUALITY] Revision needed (attempt {revision_count}/{max_revisions})...")
 
                 revision_result = reviser.revise_chapter(
                     chapter=chapter,
@@ -164,7 +164,7 @@ def generate_chapter(
                 chapter.content = revision_result.revised_text
                 chapter.word_count = len(revision_result.revised_text.split())
             else:
-                print(f"\n[PHASE 3] Max revisions reached. Accepting current version.")
+                print(f"\n[QUALITY] Max revisions reached. Accepting current version.")
                 break
 
     # Save chapter text
@@ -185,8 +185,8 @@ def generate_chapter(
 def main():
     """Main entry point."""
     print("=" * 60)
-    print("ODA-STYLE MANGA STORY ENGINE (OSSE)")
-    print("Phase 4 - Enhanced State Management")
+    print("STORYWRITER")
+    print("AI-Powered Long-Form Story Generation")
     print("=" * 60)
 
     try:
@@ -198,32 +198,32 @@ def main():
         # Initialize JSON store
         store = JSONMemoryStore()
 
-        # Phase 2: Initialize vector store and retriever
+        # Initialize vector store and retriever
         try:
             from story_writer.memory import VectorMemoryStore, SmartRetriever
 
             vector_store = VectorMemoryStore()
             retriever = SmartRetriever(vector_store)
-            print(f"[OK] Phase 2 components initialized (vector store + smart retrieval)")
+            print(f"[OK] Semantic memory initialized (vector store + smart retrieval)")
 
-            # Initialize components with Phase 2 enhancements
+            # Initialize components with semantic memory
             planner = ChapterPlanner(client, retriever=retriever)
             writer = ChapterWriter(client)
             updater = StateUpdater(client, vector_store=vector_store)
-            phase2_enabled = True
+            semantic_memory_enabled = True
 
         except ImportError as e:
-            print(f"[WARN] Phase 2 dependencies not installed: {e}")
+            print(f"[WARN] Semantic memory dependencies not installed: {e}")
             print(f"       Install with: pip install -e .")
-            print(f"       Falling back to Phase 1 mode")
+            print(f"       Falling back to basic memory mode")
 
-            # Fallback to Phase 1
+            # Fallback to basic memory
             planner = ChapterPlanner(client)
             writer = ChapterWriter(client)
             updater = StateUpdater(client)
-            phase2_enabled = False
+            semantic_memory_enabled = False
 
-        # Phase 3: Initialize quality control components
+        # Initialize quality control components
         try:
             from story_writer.checker import ContinuityChecker, QualityChecker
             from story_writer.writer.chapter_reviser import ChapterReviser
@@ -231,23 +231,23 @@ def main():
             continuity_checker = ContinuityChecker()
             quality_checker = QualityChecker(client)
             reviser = ChapterReviser(client)
-            print(f"[OK] Phase 3 components initialized (quality control + revision)")
-            phase3_enabled = True
+            print(f"[OK] Quality control initialized (continuity + style checking)")
+            quality_control_enabled = True
 
         except ImportError as e:
-            print(f"[WARN] Phase 3 components not available: {e}")
+            print(f"[WARN] Quality control components not available: {e}")
             continuity_checker = None
             quality_checker = None
             reviser = None
-            phase3_enabled = False
+            quality_control_enabled = False
 
         print("[OK] All components initialized")
-        if phase3_enabled:
-            print("      Mode: Phase 4 (Enhanced State Management)")
-        elif phase2_enabled:
-            print("      Mode: Phase 2 (Intelligent Memory)")
+        if quality_control_enabled and semantic_memory_enabled:
+            print("      Mode: Full system (All features enabled)")
+        elif semantic_memory_enabled:
+            print("      Mode: Semantic memory (Vector-based retrieval)")
         else:
-            print("      Mode: Phase 1 (Basic Memory)")
+            print("      Mode: Basic (JSON memory only)")
 
         # Check if story exists
         if not store.exists():
@@ -263,11 +263,11 @@ def main():
         # Load story
         memory = store.load()
 
-        # Phase 2: Index existing chapters if vector store is empty
-        if phase2_enabled and len(memory.chapters) > 0:
+        # Index existing chapters if vector store is empty
+        if semantic_memory_enabled and len(memory.chapters) > 0:
             vstats = vector_store.get_stats()
             if vstats['chapters'] == 0:
-                print("\n[PHASE 2] Indexing existing chapters in vector store...")
+                print("\n[INDEXING] Building semantic index from existing chapters...")
                 for chapter in memory.chapters.values():
                     vector_store.add_chapter(chapter)
                 for thread in memory.plot_threads.values():
@@ -314,10 +314,10 @@ def main():
                 print(f"  - Resolved: {sum(1 for t in memory.plot_threads.values() if t.status == 'resolved')}")
                 print(f"Themes used: {dict(memory.theme_counts)}")
 
-                # Phase 2: Show vector store stats
-                if phase2_enabled:
+                # Show vector store stats
+                if semantic_memory_enabled:
                     vstats = vector_store.get_stats()
-                    print(f"\nVector Store (Phase 2):")
+                    print(f"\nSemantic Memory:")
                     print(f"  - Chapters indexed: {vstats['chapters']}")
                     print(f"  - Events indexed: {vstats['events']}")
                     print(f"  - Threads indexed: {vstats['threads']}")

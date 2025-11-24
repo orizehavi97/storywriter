@@ -105,7 +105,7 @@ class StoryMemory(BaseModel):
         description="Major world events: {chapter_id, event}"
     )
 
-    # Phase 4: Enhanced tracking
+    # Enhanced state tracking
     character_aliases: dict[str, CharacterAlias] = Field(
         default_factory=dict,
         description="Character ID -> CharacterAlias for deduplication"

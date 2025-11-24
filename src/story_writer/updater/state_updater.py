@@ -16,10 +16,10 @@ class StateUpdater:
 
         Args:
             llm_client: LLM client for extraction
-            vector_store: Optional VectorMemoryStore for Phase 2 indexing
+            vector_store: Optional VectorMemoryStore for semantic indexing
         """
         self.client = llm_client
-        self.vector_store = vector_store  # Phase 2 enhancement
+        self.vector_store = vector_store
 
     def update_from_chapter(self, chapter: Chapter, memory: StoryMemory) -> StoryMemory:
         """
@@ -48,7 +48,7 @@ class StateUpdater:
         self._apply_location_updates(changes.get("location_updates", []), memory)
         self._apply_thread_updates(changes.get("thread_updates", []), memory, chapter)
 
-        # Phase 4: Apply enhanced tracking
+        # Apply enhanced tracking
         self._apply_relationships(changes.get("relationships", []), memory, chapter)
         self._apply_timeline_events(changes.get("major_events", []), memory, chapter)
 
@@ -63,7 +63,7 @@ class StateUpdater:
         for theme in chapter.themes:
             memory.theme_counts[theme] = memory.theme_counts.get(theme, 0) + 1
 
-        # Phase 2: Index in vector store
+        # Index in vector store
         if self.vector_store:
             print(f"[UPDATER] Indexing chapter in vector store...")
             self.vector_store.add_chapter(chapter)
@@ -253,7 +253,7 @@ Be conservative - only report changes explicitly stated or strongly implied in t
             if normalized.startswith(article):
                 normalized = normalized[len(article):]
 
-        # Phase 4: Remove "unnamed" prefix
+        # Remove "unnamed" prefix
         if normalized.startswith("unnamed "):
             normalized = normalized[8:]  # Remove "unnamed "
 
@@ -454,7 +454,7 @@ Be conservative - only report changes explicitly stated or strongly implied in t
         memory: StoryMemory,
         chapter: Chapter
     ) -> None:
-        """Track character relationships (Phase 4)."""
+        """Track character relationships."""
         if not relationships:
             return
 
@@ -507,7 +507,7 @@ Be conservative - only report changes explicitly stated or strongly implied in t
         memory: StoryMemory,
         chapter: Chapter
     ) -> None:
-        """Add events to world timeline (Phase 4)."""
+        """Add events to world timeline."""
         if not events:
             return
 
