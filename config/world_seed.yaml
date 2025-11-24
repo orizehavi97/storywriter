@@ -1,0 +1,89 @@
+# Initial World Seed Configuration
+# This defines the starting state of your story
+
+world_name: "The Shattered Isles"
+
+# Setting
+setting:
+  description: >
+    A vast archipelago of floating islands suspended in an endless sky.
+    Each island has its own ecosystem, culture, and mysteries.
+    Ancient ruins hint at a fallen civilization that once connected all islands.
+
+  geography: "Sky islands connected by wind currents and airship routes"
+  climate: "Varied - from frozen peaks to tropical paradises"
+  danger_level: "High - sky beasts, pirates, unstable islands"
+
+# Central Conflict
+central_conflict: >
+  The Sky Emperors control the major islands and hoard ancient technology
+  that could reconnect the scattered peoples. A prophecy speaks of the
+  "Wind Walker" who will unite the isles and unlock the secrets of the
+  Ancients.
+
+# Initial Factions
+factions:
+  - name: "Sky Empire"
+    description: "Authoritarian rulers of the central islands"
+    alignment: "antagonist"
+    power: "high"
+
+  - name: "Free Sailors"
+    description: "Independent traders and adventurers"
+    alignment: "neutral_good"
+    power: "medium"
+
+  - name: "Cloud Monks"
+    description: "Keepers of ancient knowledge"
+    alignment: "neutral"
+    power: "medium"
+
+# Protagonist Setup
+protagonist:
+  name: "Kael"
+  age: 17
+  background: "Orphan from a destroyed island, raised by traders"
+  dream: "Find the lost homeland and prevent other islands from falling"
+  personality: "Optimistic, reckless, fiercely loyal, curious"
+  quirks: "Always looking up at the sky, collects island maps"
+  abilities: "Unknown connection to wind currents, natural navigator"
+
+# Initial Crew/Companions
+initial_crew:
+  - name: "Finn"
+    role: "Mechanic and pilot"
+    personality: "Cautious, inventive, loyal"
+    background: "Former Sky Empire engineer turned deserter"
+
+# Starting Location
+starting_location:
+  name: "Drift Port"
+  description: "A neutral trading hub on a massive floating rock"
+  characteristics: "Bustling, diverse, full of rumors and opportunities"
+
+# Initial Plot Threads
+initial_threads:
+  - thread: "Kael's destroyed homeland - what happened?"
+    type: "mystery"
+
+  - thread: "Ancient ruins contain forbidden technology"
+    type: "mystery"
+
+  - thread: "Prophecy of the Wind Walker"
+    type: "prophecy"
+
+  - thread: "Finn's desertion from Sky Empire - they're hunting him"
+    type: "danger"
+
+# Power System
+power_system:
+  name: "Sky Affinity"
+  description: >
+    Some individuals can sense and manipulate wind currents, sky energy,
+    and atmospheric pressure. Rare abilities include flight, weather sense,
+    and connection to sky beasts.
+  rules:
+    - "Abilities grow through experience and discovery"
+    - "Ancient artifacts can enhance or grant new powers"
+    - "Overuse causes physical exhaustion"
+    - "Each person's affinity manifests uniquely"

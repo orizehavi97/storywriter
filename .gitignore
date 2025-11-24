@@ -1,0 +1,33 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# Environment variables (contains API keys!)
+.env
+
+# Data files (generated content)
+data/chapters/*.md
+data/chapters/*.json
+data/memory/*.json
+
+# Keep directory structure
+!data/chapters/.gitkeep
+!data/memory/.gitkeep
+!data/manual_prototype/.gitkeep
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db

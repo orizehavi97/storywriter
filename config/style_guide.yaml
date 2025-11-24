@@ -1,0 +1,60 @@
+# Oda-Style Writing Guidelines
+
+# Core Themes (must appear regularly)
+themes:
+  - dreams_and_ambition
+  - friendship_and_loyalty
+  - freedom_vs_oppression
+  - inherited_will
+  - humor_and_adventure
+
+# Tone Management
+tone:
+  balance: "optimistic_with_stakes"
+  humor_frequency: "high"
+  tragedy_followed_by: "hope_and_relief"
+  character_death_frequency: "rare_but_impactful"
+
+# Chapter Structure
+chapter:
+  target_word_count: 1500
+  min_word_count: 1000
+  max_word_count: 2500
+  scenes_per_chapter: 3-5
+  cliffhanger: "mandatory"
+
+# Cliffhanger Types (rotate these)
+cliffhanger_types:
+  - revelation
+  - danger
+  - mystery
+  - character_arrival
+  - emotional_peak
+  - unexpected_twist
+
+# Character Voice
+character_voice:
+  unique_speech_patterns: true
+  running_gags: true
+  consistent_personality: true
+  quirks_and_habits: true
+
+# Battle/Conflict Rules
+battle_rules:
+  power_logic: "consistent"
+  creative_ability_use: true
+  character_growth_during_fight: true
+  avoid_power_creep: true
+
+# World Building
+world_building:
+  mythology_inspiration: true
+  bizarre_creatures: true
+  unique_cultures: true
+  political_complexity: true
+
+# Pacing
+pacing:
+  action_to_calm_ratio: "60:40"
+  arc_length: "5-15 chapters"
+  variety_in_arc_types: true

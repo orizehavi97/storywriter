@@ -1,0 +1,22 @@
+# LLM Configuration
+
+# Provider: "anthropic" or "openai"
+provider: "anthropic"
+
+# Model settings
+anthropic:
+  model: "claude-3-7-sonnet-20250219"  # or claude-3-5-sonnet-20241022
+  max_tokens: 4096
+  temperature: 0.8
+
+openai:
+  model: "gpt-4-turbo-preview"
+  max_tokens: 4096
+  temperature: 0.8
+
+# Generation settings
+generation:
+  planning_temperature: 0.7  # More structured
+  writing_temperature: 0.9   # More creative
+  max_retries: 3
+  timeout: 120
