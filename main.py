@@ -106,9 +106,12 @@ def generate_chapter(
     writer: ChapterWriter,
     updater: StateUpdater,
     store: JSONMemoryStore,
-    memory
+    memory,
+    continuity_checker=None,
+    quality_checker=None,
+    reviser=None
 ) -> None:
-    """Generate a single chapter."""
+    """Generate a single chapter with optional quality control."""
     print("\n" + "=" * 60)
     print(f"GENERATING CHAPTER {memory.current_chapter_number + 1}")
     print("=" * 60)
@@ -121,6 +124,48 @@ def generate_chapter(
 
     # Write chapter
     chapter = writer.write_chapter(outline, memory)
+
+    # Phase 3: Quality Control Loop
+    if continuity_checker and quality_checker and reviser:
+        max_revisions = 2
+        revision_count = 0
+
+        while revision_count < max_revisions:
+            # Check continuity
+            violations = continuity_checker.check_chapter(chapter, memory)
+
+            # Check quality
+            quality_report = quality_checker.check_chapter(chapter, chapter.content, memory)
+
+            # Determine if revision is needed
+            has_critical_violations = any(v.severity == "critical" for v in violations)
+            has_major_violations = any(v.severity == "major" for v in violations)
+            needs_quality_revision = quality_report.needs_revision
+
+            # Break if quality is acceptable
+            if not has_critical_violations and not has_major_violations and not needs_quality_revision:
+                print(f"\n[PHASE 3] Quality control passed!")
+                break
+
+            # Revise if needed
+            revision_count += 1
+            if revision_count < max_revisions:
+                print(f"\n[PHASE 3] Revision needed (attempt {revision_count}/{max_revisions})...")
+
+                revision_result = reviser.revise_chapter(
+                    chapter=chapter,
+                    chapter_text=chapter.content,
+                    violations=violations,
+                    quality_report=quality_report,
+                    attempt=revision_count
+                )
+
+                # Update chapter with revised text
+                chapter.content = revision_result.revised_text
+                chapter.word_count = len(revision_result.revised_text.split())
+            else:
+                print(f"\n[PHASE 3] Max revisions reached. Accepting current version.")
+                break
 
     # Save chapter text
     store.save_chapter_text(chapter.chapter_id, chapter.content)
@@ -141,7 +186,7 @@ def main():
     """Main entry point."""
     print("=" * 60)
     print("ODA-STYLE MANGA STORY ENGINE (OSSE)")
-    print("Phase 2 - Intelligent Memory System")
+    print("Phase 3 - Quality Control System")
     print("=" * 60)
 
     try:
@@ -178,8 +223,28 @@ def main():
             updater = StateUpdater(client)
             phase2_enabled = False
 
+        # Phase 3: Initialize quality control components
+        try:
+            from story_writer.checker import ContinuityChecker, QualityChecker
+            from story_writer.writer.chapter_reviser import ChapterReviser
+
+            continuity_checker = ContinuityChecker()
+            quality_checker = QualityChecker(client)
+            reviser = ChapterReviser(client)
+            print(f"[OK] Phase 3 components initialized (quality control + revision)")
+            phase3_enabled = True
+
+        except ImportError as e:
+            print(f"[WARN] Phase 3 components not available: {e}")
+            continuity_checker = None
+            quality_checker = None
+            reviser = None
+            phase3_enabled = False
+
         print("[OK] All components initialized")
-        if phase2_enabled:
+        if phase3_enabled:
+            print("      Mode: Phase 3 (Quality Control)")
+        elif phase2_enabled:
             print("      Mode: Phase 2 (Intelligent Memory)")
         else:
             print("      Mode: Phase 1 (Basic Memory)")
@@ -227,7 +292,12 @@ def main():
             choice = input("\nChoice: ").strip()
 
             if choice == '1':
-                generate_chapter(planner, writer, updater, store, memory)
+                generate_chapter(
+                    planner, writer, updater, store, memory,
+                    continuity_checker=continuity_checker,
+                    quality_checker=quality_checker,
+                    reviser=reviser
+                )
 
             elif choice == '2':
                 print(f"\n" + "=" * 60)

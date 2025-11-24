@@ -6,6 +6,7 @@ from .arc import Arc
 from .world import WorldLocation, Faction, Artifact
 from .thread import PlotThread
 from .memory import StoryMemory
+from .checker import ContinuityViolation, QualityReport, RevisionResult
 
 __all__ = [
     "Chapter",
@@ -17,4 +18,7 @@ __all__ = [
     "Artifact",
     "PlotThread",
     "StoryMemory",
+    "ContinuityViolation",
+    "QualityReport",
+    "RevisionResult",
 ]
