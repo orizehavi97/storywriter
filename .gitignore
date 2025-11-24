@@ -12,15 +12,19 @@ wheels/
 # Environment variables (contains API keys!)
 .env
 
-# Data files (generated content)
-data/chapters/*.md
-data/chapters/*.json
-data/memory/*.json
+# Data directory (generated content - keep local only)
+data/
 
-# Keep directory structure
+# Keep directory structure with .gitkeep files
 !data/chapters/.gitkeep
 !data/memory/.gitkeep
 !data/manual_prototype/.gitkeep
+
+# PRD and planning documents (keep local)
+PRD.md
+
+# Claude Code settings
+.claude/
 
 # IDE
 .vscode/
