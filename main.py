@@ -186,7 +186,7 @@ def main():
     """Main entry point."""
     print("=" * 60)
     print("ODA-STYLE MANGA STORY ENGINE (OSSE)")
-    print("Phase 3 - Quality Control System")
+    print("Phase 4 - Enhanced State Management")
     print("=" * 60)
 
     try:
@@ -243,7 +243,7 @@ def main():
 
         print("[OK] All components initialized")
         if phase3_enabled:
-            print("      Mode: Phase 3 (Quality Control)")
+            print("      Mode: Phase 4 (Enhanced State Management)")
         elif phase2_enabled:
             print("      Mode: Phase 2 (Intelligent Memory)")
         else:

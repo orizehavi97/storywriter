@@ -262,6 +262,31 @@ Be conservative - only report changes explicitly stated or strongly implied in t
 
         return normalized
 
+    def _normalize_thread_name(self, name: str) -> str:
+        """
+        Normalize plot thread name for deduplication.
+
+        Examples:
+        - "Wind Walker Prophecy" -> "wind walker prophecy"
+        - "The Wind Walker prophecy" -> "wind walker prophecy"
+        - "Wind Walker prophecy" -> "wind walker prophecy"
+        """
+        if not name:
+            return ""
+
+        # Remove common articles and convert to lowercase
+        normalized = name.lower().strip()
+
+        # Remove leading articles
+        for article in ["the ", "a ", "an "]:
+            if normalized.startswith(article):
+                normalized = normalized[len(article):]
+
+        # Remove extra whitespace
+        normalized = " ".join(normalized.split())
+
+        return normalized
+
     def _apply_character_updates(
         self,
         updates: list[dict],
@@ -360,18 +385,34 @@ Be conservative - only report changes explicitly stated or strongly implied in t
             description = update_data.get("description", "")
 
             if action == "introduce":
-                # Create new thread
-                thread_id = f"thread_{len(memory.plot_threads) + 1:03d}"
-                new_thread = PlotThread(
-                    thread_id=thread_id,
-                    name=thread_name,
-                    thread_type="mystery",  # Default type
-                    setup_chapter=chapter.chapter_id,
-                    setup_description=description,
-                    status="open"
-                )
-                memory.plot_threads[thread_id] = new_thread
-                print(f"         - New thread: '{thread_name}'")
+                # Check if thread already exists (fuzzy match to avoid duplicates)
+                normalized_new = self._normalize_thread_name(thread_name)
+                existing_thread = None
+
+                for thread in memory.plot_threads.values():
+                    normalized_existing = self._normalize_thread_name(thread.name)
+                    if normalized_existing == normalized_new:
+                        existing_thread = thread
+                        break
+
+                if existing_thread:
+                    # Thread already exists, just update it
+                    print(f"         - Thread '{thread_name}' already exists as '{existing_thread.name}', skipping")
+                    if description and not existing_thread.setup_description:
+                        existing_thread.setup_description = description
+                else:
+                    # Create new thread
+                    thread_id = f"thread_{len(memory.plot_threads) + 1:03d}"
+                    new_thread = PlotThread(
+                        thread_id=thread_id,
+                        name=thread_name,
+                        thread_type="mystery",  # Default type
+                        setup_chapter=chapter.chapter_id,
+                        setup_description=description,
+                        status="open"
+                    )
+                    memory.plot_threads[thread_id] = new_thread
+                    print(f"         - New thread: '{thread_name}'")
 
             elif action == "progress":
                 # Find and update existing thread
