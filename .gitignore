@@ -20,6 +20,9 @@ data/
 !data/memory/.gitkeep
 !data/manual_prototype/.gitkeep
 
+# Documentation directory (keep local only)
+docs/
+
 # PRD and planning documents (keep local)
 PRD.md
 
