@@ -141,7 +141,7 @@ def main():
     """Main entry point."""
     print("=" * 60)
     print("ODA-STYLE MANGA STORY ENGINE (OSSE)")
-    print("Phase 1 - Minimal System")
+    print("Phase 2 - Intelligent Memory System")
     print("=" * 60)
 
     try:
@@ -150,11 +150,39 @@ def main():
         client = create_client()
         print(f"[OK] LLM Client: {client.provider} - {client.model}")
 
-        planner = ChapterPlanner(client)
-        writer = ChapterWriter(client)
-        updater = StateUpdater(client)
+        # Initialize JSON store
         store = JSONMemoryStore()
+
+        # Phase 2: Initialize vector store and retriever
+        try:
+            from story_writer.memory import VectorMemoryStore, SmartRetriever
+
+            vector_store = VectorMemoryStore()
+            retriever = SmartRetriever(vector_store)
+            print(f"[OK] Phase 2 components initialized (vector store + smart retrieval)")
+
+            # Initialize components with Phase 2 enhancements
+            planner = ChapterPlanner(client, retriever=retriever)
+            writer = ChapterWriter(client)
+            updater = StateUpdater(client, vector_store=vector_store)
+            phase2_enabled = True
+
+        except ImportError as e:
+            print(f"[WARN] Phase 2 dependencies not installed: {e}")
+            print(f"       Install with: pip install -e .")
+            print(f"       Falling back to Phase 1 mode")
+
+            # Fallback to Phase 1
+            planner = ChapterPlanner(client)
+            writer = ChapterWriter(client)
+            updater = StateUpdater(client)
+            phase2_enabled = False
+
         print("[OK] All components initialized")
+        if phase2_enabled:
+            print("      Mode: Phase 2 (Intelligent Memory)")
+        else:
+            print("      Mode: Phase 1 (Basic Memory)")
 
         # Check if story exists
         if not store.exists():
@@ -169,6 +197,17 @@ def main():
 
         # Load story
         memory = store.load()
+
+        # Phase 2: Index existing chapters if vector store is empty
+        if phase2_enabled and len(memory.chapters) > 0:
+            vstats = vector_store.get_stats()
+            if vstats['chapters'] == 0:
+                print("\n[PHASE 2] Indexing existing chapters in vector store...")
+                for chapter in memory.chapters.values():
+                    vector_store.add_chapter(chapter)
+                for thread in memory.plot_threads.values():
+                    vector_store.add_thread(thread)
+                print(f"[OK] Indexed {len(memory.chapters)} chapters and {len(memory.plot_threads)} threads")
 
         # Main loop
         print("\n" + "=" * 60)
@@ -204,6 +243,14 @@ def main():
                 print(f"  - Open: {len(memory.open_threads)}")
                 print(f"  - Resolved: {sum(1 for t in memory.plot_threads.values() if t.status == 'resolved')}")
                 print(f"Themes used: {dict(memory.theme_counts)}")
+
+                # Phase 2: Show vector store stats
+                if phase2_enabled:
+                    vstats = vector_store.get_stats()
+                    print(f"\nVector Store (Phase 2):")
+                    print(f"  - Chapters indexed: {vstats['chapters']}")
+                    print(f"  - Events indexed: {vstats['events']}")
+                    print(f"  - Threads indexed: {vstats['threads']}")
 
             elif choice == '3':
                 print("\nExiting Story Writer...")
