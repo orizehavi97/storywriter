@@ -10,7 +10,8 @@
       "Bash(test:*)",
       "Bash(git remote add:*)",
       "Bash(git push:*)",
-      "Bash(python tests/test_llm_connection.py:*)"
+      "Bash(python tests/test_llm_connection.py:*)",
+      "Bash(python tests/test_memory_store.py:*)"
     ],
     "deny": [],
     "ask": []
