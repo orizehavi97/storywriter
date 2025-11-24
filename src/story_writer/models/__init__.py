@@ -7,6 +7,7 @@ from .world import WorldLocation, Faction, Artifact
 from .thread import PlotThread
 from .memory import StoryMemory
 from .checker import ContinuityViolation, QualityReport, RevisionResult
+from .tracker import CharacterAlias, Relationship, WorldEvent
 
 __all__ = [
     "Chapter",
@@ -21,4 +22,7 @@ __all__ = [
     "ContinuityViolation",
     "QualityReport",
     "RevisionResult",
+    "CharacterAlias",
+    "Relationship",
+    "WorldEvent",
 ]
